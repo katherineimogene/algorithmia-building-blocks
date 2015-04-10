@@ -1,0 +1,130 @@
+
+<html ng-app="pokeApp">
+<head>
+  <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+  <script src="apiSample.js"></script>
+  <link rel="stylesheet" type="text/css" href="apiSample.css">
+</head>
+<body>
+  <main>
+    <div class="articles">
+      <h1>popular now on geekwire</h1>
+    </div>
+    <div class="summary"></div>
+    <div class="keywords"></div>
+    <div class="tweets"></div>
+  </main>
+
+<script src="algorithmia.js"></script>
+<script>
+  var api_key = "7569447b713d47d997d2696cff31fa8c";
+  var url = "http://www.geekwire.com/popular/";
+
+  addEventListeners()
+  run()
+
+  function addEventListeners() {
+    $('body').on('click','.article',function(e){
+      e.preventDefault()
+      handleArticle(e.target.href)
+    })
+
+    $('body').on('click','.keyword',function(e){
+      e.preventDefault()
+      handleKeyword(e.target.innerHTML)
+    })
+  }
+
+  function run(){
+    var getLinksPath = "/web/GetLinks";
+    Algorithmia.query(getLinksPath, api_key, url, function(err, links) {
+      if(err) {
+        return console.log("error: "+err)
+      }
+      showFirstFiveArticles(links);
+    });
+  }
+
+  function titleFromUrl(url){
+    prettyValue = url.split('/2015/')[1].replace(/-/g , " ").replace(/\//g,'');
+      if(prettyValue.match(/#/) != null){
+        prettyValue = prettyValue.split('#')[0]
+      }
+    return prettyValue
+  }
+
+  function showFirstFiveArticles(arrayOfLinks){
+    var articles = []
+    $.each( arrayOfLinks, function( index, value ) {
+      if(value.match(/\/2015\//) != null){
+        articles.push(value);
+      }
+    })
+    var fiveArticles = articles.slice(0,5)
+    $.each( fiveArticles, function( idx, value ) {
+      prettyValue = titleFromUrl(value)
+      $('.articles').append('<div><a class="article" href="'+value+'">'+prettyValue+'</a></div>')
+    })
+  }
+
+  function handleArticle(articleUrl){
+    var url2TextPath = "/util/Url2Text"
+
+    Algorithmia.query(url2TextPath, api_key, articleUrl, function(err, text) {
+      if(err) {
+        return console.log("error: "+err)
+      }
+      summarize(text, articleUrl);
+    });
+  }
+
+  function summarize(text,url){
+    var summarizerPath = "/nlp/Summarizer"
+    Algorithmia.query(summarizerPath, api_key, text, function(err, summary) {
+      if(err) {
+        return console.log("error: "+err)
+      }
+      title = titleFromUrl(url)
+      $('.summary')[0].innerHTML = "<h2>"+title+"</h2>"+"<div>"+summary+"</div>"
+      tag(summary);
+    });
+  }
+
+  function tag(text){
+    var autoTagPath = "/nlp/AutoTag"
+    textAsArray = [text]
+    Algorithmia.query(autoTagPath, api_key, textAsArray, function(err, keywords) {
+      if(err) {
+        return console.log("error: "+err)
+      }
+      $('.keywords').append('<h3>related keywords</h3>')
+      $.each( keywords, function(idx, value) {
+        $('.keywords').append($('<div class="keyword">'+value+'</div>'))
+      })
+    });
+  }
+
+  function handleKeyword(keyword) {
+    var retrieveTweetPath = "/diego/RetrieveTweetsWithKeyword"
+    Algorithmia.query(retrieveTweetPath, api_key, keyword, function(err, tweets) {
+      if(err) {
+        return console.log("error: "+err)
+      }
+      displayTenTweets(tweets,keyword)
+    });
+  }
+
+  function displayTenTweets(tweets,keyword) {
+    tenTweets = tweets.slice(0,10)
+    tweetMarkup = ['<div class="tweets">,<h2>tweets about '+keyword+'</h2>']
+    $.each( tenTweets, function(idx, value) {
+      tweetMarkup.push('<div class="tweet">'+value+'</div>')
+    })
+    tweetMarkup.push('</div>')
+    $('.tweets')[0].innerHTML = tweetMarkup.join('')
+  }
+
+</script>
+
+</body>
+</html>

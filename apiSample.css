@@ -1,0 +1,44 @@
+ body {
+   margin: 0;
+   background: #C1CAD0
+ }
+
+ main {
+  width: 900px;
+  min-height: 800px;
+  margin: 0 auto;
+  font-family: "HelveticaNeue";
+  font-weight: lighter;
+  background-color: #fff;
+  padding: 0 10px;
+ }
+
+ a {
+  line-height: 2em;
+  text-decoration: none;
+ }
+
+ .summary {
+  margin-top: 2em;
+  border-top: 1px solid #ddd;
+ }
+
+ .summary div {
+  line-height: 1.2em;
+ }
+
+ .keyword {
+  display: inline;
+  margin-right: 20px;
+  cursor: pointer;
+  background-color: #B8B8F2;
+  font: #fff;
+  border-radius: 7px;
+  padding: 2px 9px 4px;
+ }
+
+ .tweet {
+  padding: 10px 0;
+  border-bottom: 1px solid #e8e8e8;
+  line-height: 1.2em;
+ }
